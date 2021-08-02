@@ -89,23 +89,44 @@ class Coin {
 
 scene("game", () => {
 
-    const map = [
-        '',
-        '',
-        '',
-        '                                             ',
-        '                                             ',
-        '                     <_>                     ',
-        '      p     &                            d   ',
-        '                                      <__>   ',
-        '     <___>                                   ',
-        '              <>                             ',
-        '        b                 <______>           ',
-        '                                             ',
-        '      &   <___________>  &                   ',
-        '                                <____>       ',
-        '                             <_________>     ',
-        '   <________________________________________>',
+    const maps = [
+        [
+            '',
+            '',
+            '',
+            '                                             ',
+            '                                             ',
+            '                     <_>                     ',
+            '      p     &                                ',
+            '                                      <__>   ',
+            '     <___>                                   ',
+            '              <>                             ',
+            '        b                 <______>           ',
+            '                                             ',
+            '      &   <___________>  &                   ',
+            '                                <____>       ',
+            '                             <_________>     ',
+            '   <________________________________________>',
+        ],
+        [
+            '',
+            '',
+            '',
+            '                       p                     ',
+            '                                             ',
+            '                                             ',
+            '                                             ',
+            '                                             ',
+            '     <___>                                   ',
+            '              <>    <______>                 ',
+            '        b                            <______>',
+            '  <______>                         <______>  ',
+            '                                  <______>   ',
+            '                                <____>       ',
+            '                             <_________>     ',
+            '   <________________________________________>',
+        ]
+
     ]
 
     const levelCfg = {
@@ -119,7 +140,6 @@ scene("game", () => {
         '%': [sprite('coin-side'), solid(), scale(2), 'coin'],
         'b': [sprite('bomb'), solid(), scale(1.5), 'bomb', 'danger'],
         'p': [sprite('iceman'), solid(), scale(1), body(), 'iceman', 'princes'],
-        'd': [sprite('door'), solid(), scale(2.5)]
 
     }
 
@@ -147,9 +167,18 @@ scene("game", () => {
         }
     ]);
 
+    const door = add([
+        sprite('door'),
+        solid(),
+        pos(vec2(1650,245)),
+        scale(2),
+        'door'
+    ])
+
 
     // const bombs = [new Bomb().bomb]
     const coins = [new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin]
+    const levelGlobal =  0
 
     //args.score ??
     const scoreLabel = add([
@@ -157,18 +186,18 @@ scene("game", () => {
         pos(300, 50),
         layer('bg'),
         scale(1.5),
-        color(0,0,0,1),
+        color(0, 0, 0, 1),
         {
             value: scoreGlobal,
         },
     ])
 
     const levelLabel = add([
-        text('level ' + '1'),
+        text('level ' + levelGlobal),
         pos(50, 50),
         layer('bg'),
         scale(1.5),
-        color(0,0,0,1)
+        color(0, 0, 0, 1)
     ])
 
     player.collides("iceman", () => {
@@ -195,6 +224,13 @@ scene("game", () => {
         destroy(c)
     })
 
+    player.collides('door',(d)=>{
+        d.destroy()
+        player.destroy()
+        camShake(12)
+        go('game')
+    })
+
     collides('player', 'tile', (p, t) => {
         p.changeSprite('player')
     })
@@ -203,7 +239,7 @@ scene("game", () => {
         flippCoin(coins)
     }, 200);
 
-    addLevel(map, levelCfg)
+    addLevel(maps[0], levelCfg)
     keyControllers(player)
 
 });
