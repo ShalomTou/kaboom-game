@@ -17,7 +17,7 @@ console.log(WINDOW_WIDTH, WINDOW_HEIGHT)
 
 
 
-loadSprite("iceman", "/assets/iceman.png");
+loadSprite("iceman", "./assets/iceman.png");
 loadSprite("tile-single", "./assets/Tiles/tile_0000.png")
 loadSprite("tile-left", "./assets/Tiles/tile_0001.png")
 loadSprite("tile-center", "./assets/Tiles/tile_0002.png")
