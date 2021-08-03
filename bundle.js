@@ -9,9 +9,10 @@ kaboom({
 const MIN_RAND = 50
 const MAX_RAND = 1980
 const JUMP_FORCE = 200
-const SPEED_FORCE = 200
+let SPEED_FORCE = 200
 const FALL_DEATH = 1000
-const scoreGlobal = 0
+let levelGlobal =  0
+let scoreGlobal = 0
 const WINDOW_WIDTH = window.screen.width
 const WINDOW_HEIGHT = window.screen.height
 console.log(WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -87,8 +88,8 @@ class Coin {
 }
 
 
-scene("game", () => {
-
+scene("game", ({scoreGlobal,levelGlobal}) => {
+    console.log(`GAME -> score:`,scoreGlobal,`level:`,levelGlobal)
     const maps = [
         [
             '',
@@ -97,13 +98,13 @@ scene("game", () => {
             '                                             ',
             '                                             ',
             '                     <_>                     ',
-            '      p     &                                ',
+            '      p     &                            d   ',
             '                                      <__>   ',
             '     <___>                                   ',
             '              <>                             ',
             '        b                 <______>           ',
             '                                             ',
-            '      &   <___________>  &                   ',
+            '      &   <__________>  &                    ',
             '                                <____>       ',
             '                             <_________>     ',
             '   <________________________________________>',
@@ -118,17 +119,34 @@ scene("game", () => {
             '                                             ',
             '                                             ',
             '     <___>                                   ',
-            '              <>    <______>                 ',
+            '              <>    <______>               d ',
             '        b                            <______>',
             '  <______>                         <______>  ',
-            '                                  <______>   ',
+            '                 <>               <______>   ',
             '                                <____>       ',
+            '                             <_________>     ',
+            '   <________________________________________>',
+        ],
+        [
+            '',
+            '',
+            '',
+            '               d                             ',
+            '               <>                            ',
+            '                   <>              <______>  ',
+            '                        <>                   ',
+            '                    <>             <______>  ',
+            '     <___>                                   ',
+            '              <>                             ',
+            '        b           <____>       <__________>',
+            '  <______>               <>                  ',
+            '                 <>                          ',
+            '                                 <___>       ',
             '                             <_________>     ',
             '   <________________________________________>',
         ]
 
     ]
-
     const levelCfg = {
         width: 40,
         height: 40,
@@ -140,15 +158,14 @@ scene("game", () => {
         '%': [sprite('coin-side'), solid(), scale(2), 'coin'],
         'b': [sprite('bomb'), solid(), scale(1.5), 'bomb', 'danger'],
         'p': [sprite('iceman'), solid(), scale(1), body(), 'iceman', 'princes'],
+        'd':[sprite('door'),solid(),scale(2),'door']
 
     }
-
     const bg = addSprite("bg", {
         width: width(),
         height: height(),
         layer: 'bg'
     });
-
     const player = add([
         sprite('player'),
         pos(110, 0),
@@ -166,21 +183,8 @@ scene("game", () => {
             dead: false,
         }
     ]);
-
-    const door = add([
-        sprite('door'),
-        solid(),
-        pos(vec2(1650,245)),
-        scale(2),
-        'door'
-    ])
-
-
     // const bombs = [new Bomb().bomb]
     const coins = [new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin, new Coin().coin]
-    const levelGlobal =  0
-
-    //args.score ??
     const scoreLabel = add([
         text(scoreGlobal),
         pos(300, 50),
@@ -191,15 +195,13 @@ scene("game", () => {
             value: scoreGlobal,
         },
     ])
-
     const levelLabel = add([
-        text('level ' + levelGlobal),
+        text('level ' + +(levelGlobal+1)),
         pos(50, 50),
         layer('bg'),
         scale(1.5),
         color(0, 0, 0, 1)
     ])
-
     player.collides("iceman", () => {
         add([
             sprite('coin-front'),
@@ -208,44 +210,45 @@ scene("game", () => {
             origin('center'),
             solid()
         ])
-        go('win', scoreGlobal)
+        go('win',{scoreGlobal,levelGlobal})
     });
-
     player.action(() => {
         // camPos(player.pos)
         if (player.pos.y >= FALL_DEATH) {
-            go('lose', scoreGlobal)
+            go('lose', {scoreGlobal,levelGlobal})
         }
     })
-
     player.collides('coin', (c) => {
+        scoreGlobal++
         scoreLabel.value++
         scoreLabel.text = scoreLabel.value
         destroy(c)
     })
-
     player.collides('door',(d)=>{
         d.destroy()
         player.destroy()
         camShake(12)
-        go('game')
+        levelGlobal++
+        go('game',{scoreGlobal,levelGlobal})
     })
-
     collides('player', 'tile', (p, t) => {
         p.changeSprite('player')
     })
-
     setInterval(() => {
         flippCoin(coins)
     }, 200);
 
-    addLevel(maps[0], levelCfg)
+    addLevel(maps[levelGlobal], levelCfg)
     keyControllers(player)
 
 });
 
-scene("lose", (score) => {
+scene("lose", ({scoreGlobal,levelGlobal}) => {
+    // console.log(`LOSE -> score:`,score,`level:`,level)
+    console.log(`LOSE->`,scoreGlobal,levelGlobal)
+
     layers(['bg'], 'bg')
+
     const bg = addSprite("bg", {
         width: width(),
         height: height(),
@@ -267,19 +270,28 @@ scene("lose", (score) => {
 
     ])
     add([
-        text('score:' + score),
+        text('score:' + scoreGlobal),
         pos(width() / 2, height() / 6),
         origin('center'),
         color(0, 0, 0, 1),
         scale(2)
     ])
+    add([
+        text('level:' +levelGlobal),
+        pos(width() / 2, height() / 10),
+        origin('center'),
+        color(0, 0, 0, 1),
+        scale(2)
+    ])
     keyDown('a', () => {
-        go("game")
+        go("game",{scoreGlobal:0,levelGlobal:0})
     })
 })
 
 
-scene("win", (score) => {
+scene("win", ({scoreGlobal,levelGlobal}) => {
+    console.log(`WIN -> score:`,scoreGlobal,`level:`,levelGlobal)
+
     layers(['bg'], 'bg')
     const bg = addSprite("bg", {
         width: width(),
@@ -303,14 +315,21 @@ scene("win", (score) => {
 
     ])
     add([
-        text('score:' + score),
+        text('score:' + scoreGlobal),
         pos(width() / 2, height() / 6),
         color(0, 0, 0, 1),
         scale(2),
         origin('center'),
     ])
+    add([
+        text('level:' +levelGlobal),
+        pos(width() / 2, height() / 10),
+        origin('center'),
+        color(0, 0, 0, 1),
+        scale(2)
+    ])
     keyDown('a', () => {
-        go("game")
+        go("game",{scoreGlobal:0,levelGlobal:0})
     })
 })
 
@@ -321,16 +340,22 @@ function flippCoin(coins) {
     })
 }
 
-
-
-
+// Key controllers
 function keyControllers(player) {
+
     keyDown('left', () => {
+        if(keyIsDown(`control`)){
+            player.move(-SPEED_FORCE*2, 0)
+        }
         player.changeSprite('player-walk')
         player.move(-SPEED_FORCE, 0)
         player.dir = vec2(-1, 0)
     })
     keyDown('right', () => {
+        if(keyIsDown(`control`)){
+            player.move(SPEED_FORCE*2, 0)
+
+        }
         player.changeSprite('player-walk')
         player.move(SPEED_FORCE, 0)
         player.dir = vec2(1, 0)
@@ -352,5 +377,5 @@ function keyControllers(player) {
 }
 
 
-go("game");
+go("game",{scoreGlobal,levelGlobal});
 },{}]},{},[1]);
